@@ -50,7 +50,7 @@
 
 # agents/narrative_agent.py
 import json
-from backend.llm import call_llm
+from llm import call_llm
 from utils.json_utils import extract_json
 
 def narrative_agent(state):

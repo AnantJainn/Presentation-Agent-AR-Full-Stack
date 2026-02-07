@@ -1,5 +1,5 @@
 # agents/critique_agent.py
-from backend.llm import call_llm
+from llm import call_llm
 
 def critique_agent(state):
     print("🧐 Critique Agent Analyzing...")
