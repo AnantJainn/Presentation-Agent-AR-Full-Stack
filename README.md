@@ -51,7 +51,7 @@ The **Beamer Agent** generates academic-ready LaTeX Beamer code.
 ---
 
 ## 🚀 Getting Started
-
+### Option-1
 1.  **Environment Setup:** Create a `.env` file in the root directory with your API keys.
 2.  **Install Dependencies:**
     ```bash
@@ -61,3 +61,6 @@ The **Beamer Agent** generates academic-ready LaTeX Beamer code.
 3.  **Run Application:**
     * Backend: `python backend/app.py`
     * Frontend: `npm run dev`
+
+### Option-2
+1. Run the IPYNB file by adding your keys
