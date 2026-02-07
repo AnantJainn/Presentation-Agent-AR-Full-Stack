@@ -712,20 +712,466 @@
 
 
 
+// import React, { useState, useEffect, useRef } from 'react';
+// import { BookOpen, RefreshCw, Download, Send, Zap, Terminal, Clock } from 'lucide-react';
+
+// const API_URL = import.meta.env.PROD ? "" : "http://localhost:8000";
+
+// // --- Log Window Component (New) ---
+// const LogWindow = ({ logs }) => {
+//   const scrollRef = useRef(null);
+
+//   // Auto-scroll to bottom
+//   useEffect(() => {
+//     if (scrollRef.current) {
+//       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+//     }
+//   }, [logs]);
+
+//   return (
+//     <div style={{
+//       marginTop: '2rem',
+//       background: 'rgba(15, 23, 42, 0.6)',
+//       border: '1px solid rgba(59, 130, 246, 0.2)',
+//       borderRadius: '16px',
+//       overflow: 'hidden',
+//       animation: 'fadeInUp 0.5s ease-out'
+//     }}>
+//       <div style={{
+//         background: 'rgba(255, 255, 255, 0.05)',
+//         padding: '0.75rem 1.5rem',
+//         borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+//         display: 'flex',
+//         alignItems: 'center',
+//         gap: '0.5rem',
+//         fontSize: '0.8rem',
+//         textTransform: 'uppercase',
+//         letterSpacing: '0.05em',
+//         color: '#94a3b8'
+//       }}>
+//         <Terminal size={14} /> Agent Neural Logs
+//       </div>
+//       <div ref={scrollRef} style={{
+//         height: '200px',
+//         overflowY: 'auto',
+//         padding: '1rem 1.5rem',
+//         fontFamily: 'monospace',
+//         fontSize: '0.85rem',
+//         display: 'flex',
+//         flexDirection: 'column',
+//         gap: '0.5rem'
+//       }}>
+//         {logs.length === 0 && <span style={{ color: '#64748b' }}>Initializing agent sequence...</span>}
+//         {logs.map((log, i) => (
+//           <div key={i} style={{ display: 'flex', gap: '1rem', color: '#e2e8f0' }}>
+//             <span style={{ color: '#3b82f6', opacity: 0.8 }}>
+//               [{log.split(']')[0].replace('[', '').slice(0, 8)}]
+//             </span>
+//             <span>{log.split(']')[1] || log}</span>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default function App() {
+//   const [mode, setMode] = useState('arxiv');
+//   const [inputVal, setInputVal] = useState('');
+//   const [session, setSession] = useState(null);
+//   const [status, setStatus] = useState('idle'); // 'idle' | 'processing' | 'completed'
+//   const [logs, setLogs] = useState([]);
+//   const [slides, setSlides] = useState([]);
+//   const [feedback, setFeedback] = useState('');
+
+//   // --- Polling Logic (The "Brain") ---
+//   useEffect(() => {
+//     let interval;
+//     if (session && status === 'processing') {
+//       interval = setInterval(async () => {
+//         try {
+//           const res = await fetch(`${API_URL}/api/status/${session}`);
+//           const data = await res.json();
+//           setLogs(data.logs || []);
+
+//           if (data.status === 'completed') {
+//             setStatus('completed');
+//             setSlides(data.slides || []);
+//             clearInterval(interval);
+//           } else if (data.status === 'failed') {
+//             setStatus('failed');
+//             alert("Generation failed. Check logs.");
+//             clearInterval(interval);
+//           }
+//         } catch (e) {
+//           console.error("Polling error", e);
+//         }
+//       }, 1000); // Check every 1 second
+//     }
+//     return () => clearInterval(interval);
+//   }, [session, status]);
+
+//   const handleGenerate = async () => {
+//     if (!inputVal && mode === 'arxiv') return alert("Please enter a URL");
+
+//     setStatus('processing');
+//     setLogs([]);
+//     setSlides([]);
+
+//     try {
+//       const res = await fetch(`${API_URL}/api/generate`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ source_type: mode, input_value: inputVal })
+//       });
+//       const data = await res.json();
+//       setSession(data.session_id);
+//     } catch (e) {
+//       alert("Error starting: " + e.message);
+//       setStatus('idle');
+//     }
+//   };
+
+//   const handleRefine = async () => {
+//     if (!feedback) return;
+//     setStatus('processing'); // Restart polling
+//     try {
+//       await fetch(`${API_URL}/api/refine`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ session_id: session, feedback })
+//       });
+//     } catch (e) {
+//       alert("Error refining: " + e.message);
+//     }
+//   };
+
+//   return (
+//     <div style={{
+//       minHeight: '100vh',
+//       background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+//       color: 'white',
+//       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+//       overflowX: 'hidden',
+//       position: 'relative'
+//     }}>
+//       {/* Animated Background Particles */}
+//       <div style={{
+//         position: 'fixed',
+//         top: 0,
+//         left: 0,
+//         width: '100%',
+//         height: '100%',
+//         pointerEvents: 'none',
+//         zIndex: 1
+//       }}>
+//         {[...Array(20)].map((_, i) => (
+//           <div
+//             key={i}
+//             style={{
+//               position: 'absolute',
+//               width: '4px',
+//               height: '4px',
+//               background: 'rgba(59, 130, 246, 0.3)',
+//               borderRadius: '50%',
+//               left: `${Math.random() * 100}%`,
+//               top: `${Math.random() * 100}%`,
+//               animation: `float ${20 + Math.random() * 10}s infinite linear`,
+//               animationDelay: `${Math.random() * 10}s`
+//             }}
+//           />
+//         ))}
+//       </div>
+
+//       <style>{`
+//         @keyframes float {
+//           0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
+//           50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+//         }
+//         @keyframes fadeInUp {
+//           from { opacity: 0; transform: translateY(30px); }
+//           to { opacity: 1; transform: translateY(0); }
+//         }
+//       `}</style>
+
+//       {/* Main Container */}
+//       <div style={{
+//         maxWidth: '1400px',
+//         margin: '0 auto',
+//         padding: '2rem 1.5rem',
+//         position: 'relative',
+//         zIndex: 10
+//       }}>
+
+//         {/* Hero Section */}
+//         <header style={{
+//           textAlign: 'center',
+//           marginBottom: '4rem',
+//           animation: 'fadeInUp 1s ease-out'
+//         }}>
+//           <h1 style={{
+//             fontSize: 'clamp(2.5rem, 8vw, 5rem)',
+//             fontWeight: 900,
+//             background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)',
+//             WebkitBackgroundClip: 'text',
+//             WebkitTextFillColor: 'transparent',
+//             marginBottom: '1.5rem',
+//             letterSpacing: '-0.02em'
+//           }}>
+//             Research to Slides <span>AI</span>
+//           </h1>
+//           <p style={{
+//             fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)',
+//             color: 'rgba(156, 163, 175, 0.9)',
+//             maxWidth: '600px',
+//             margin: '0 auto',
+//             lineHeight: 1.6
+//           }}>
+//             Transform ArXiv papers into stunning presentations.
+//           </p>
+//         </header>
+
+//         {/* Input Card */}
+//         <div style={{
+//           background: 'rgba(15, 23, 42, 0.8)',
+//           backdropFilter: 'blur(20px)',
+//           border: '1px solid rgba(59, 130, 246, 0.2)',
+//           borderRadius: '24px',
+//           padding: '2.5rem',
+//           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+//           marginBottom: '3rem',
+//           animation: 'fadeInUp 0.8s ease-out 0.2s both'
+//         }}>
+
+//           {/* Mode Toggle */}
+//           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem' }}>
+//             <button
+//               onClick={() => setMode('arxiv')}
+//               style={{
+//                 padding: '0.75rem 1.75rem',
+//                 borderRadius: '50px',
+//                 fontWeight: 600,
+//                 border: 'none',
+//                 background: mode === 'arxiv' ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : 'rgba(75, 85, 99, 0.3)',
+//                 color: mode === 'arxiv' ? 'white' : 'rgba(156, 163, 175, 0.8)',
+//                 cursor: 'pointer',
+//                 transition: 'all 0.3s ease'
+//               }}
+//             >
+//               🔗 ArXiv Link
+//             </button>
+//             <button
+//               onClick={() => setMode('dummy')}
+//               style={{
+//                 padding: '0.75rem 1.75rem',
+//                 borderRadius: '50px',
+//                 fontWeight: 600,
+//                 border: 'none',
+//                 background: mode === 'dummy' ? 'linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%)' : 'rgba(75, 85, 99, 0.3)',
+//                 color: mode === 'dummy' ? 'white' : 'rgba(156, 163, 175, 0.8)',
+//                 cursor: 'pointer',
+//                 transition: 'all 0.3s ease'
+//               }}
+//             >
+//               🎲 Try Demo
+//             </button>
+//           </div>
+
+//           {/* Input & Generate */}
+//           <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+//             {mode === 'arxiv' && (
+//               <input
+//                 type="text"
+//                 placeholder="https://arxiv.org/abs/2401.xxxxx"
+//                 style={{
+//                   flex: 1,
+//                   minWidth: '250px',
+//                   background: 'rgba(17, 24, 39, 0.8)',
+//                   border: '1px solid rgba(55, 65, 81, 0.5)',
+//                   borderRadius: '16px',
+//                   padding: '1.25rem 1.75rem',
+//                   color: 'white',
+//                   fontSize: '1.1rem',
+//                   outline: 'none'
+//                 }}
+//                 value={inputVal}
+//                 onChange={(e) => setInputVal(e.target.value)}
+//               />
+//             )}
+//             <button
+//               onClick={handleGenerate}
+//               disabled={status === 'processing'}
+//               style={{
+//                 background: status === 'processing' ? 'rgba(59, 130, 246, 0.4)' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+//                 color: 'white',
+//                 padding: '1.25rem 2.5rem',
+//                 borderRadius: '16px',
+//                 fontWeight: 700,
+//                 fontSize: '1.1rem',
+//                 border: 'none',
+//                 cursor: status === 'processing' ? 'not-allowed' : 'pointer',
+//                 display: 'flex',
+//                 alignItems: 'center',
+//                 gap: '0.75rem',
+//                 flexGrow: mode === 'dummy' ? 1 : 0,
+//                 justifyContent: 'center'
+//               }}
+//             >
+//               {status === 'processing' ? <RefreshCw className="animate-spin" size={24} /> : <Zap size={24} />}
+//               {status === 'processing' ? "Thinking..." : "Generate"}
+//             </button>
+//           </div>
+
+//           {/* LOGS WINDOW (Inserted Here) */}
+//           {(status === 'processing' || logs.length > 0) && <LogWindow logs={logs} />}
+
+//         </div>
+
+//         {/* Results Section */}
+//         {/* Results Section */}
+//         {status === 'completed' && slides.length > 0 && (
+//           <div style={{ animation: 'fadeInUp 0.8s ease-out 0.4s both' }}>
+
+//             {/* Header with Download */}
+//             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+//               <h2 style={{ fontSize: '1.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '1rem' }}>
+//                 <BookOpen style={{ color: '#3b82f6' }} /> Presentation Outline
+//               </h2>
+
+//               {/* UPDATED DOWNLOAD LINKS */}
+//               <div style={{ display: 'flex', gap: '1rem' }}>
+//                 <a
+//                   href={`${API_URL}/api/download/pptx/${session}`}  // <--- FIXED PATH
+//                   target="_blank"
+//                   rel="noopener noreferrer"
+//                   style={{
+//                     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+//                     color: 'white',
+//                     padding: '0.875rem 1.75rem',
+//                     borderRadius: '12px',
+//                     fontWeight: 600,
+//                     textDecoration: 'none',
+//                     display: 'flex',
+//                     alignItems: 'center',
+//                     gap: '0.75rem',
+//                     boxShadow: '0 8px 25px rgba(16, 185, 129, 0.4)'
+//                   }}
+//                 >
+//                   <Download size={20} /> PPTX
+//                 </a>
+
+//                 {/* Optional: Add TeX Download since your backend supports it */}
+//                 <a
+//                   href={`${API_URL}/api/download/tex/${session}`}
+//                   target="_blank"
+//                   rel="noopener noreferrer"
+//                   style={{
+//                     background: 'rgba(255, 255, 255, 0.1)',
+//                     color: 'white',
+//                     padding: '0.875rem 1.75rem',
+//                     borderRadius: '12px',
+//                     fontWeight: 600,
+//                     textDecoration: 'none',
+//                     display: 'flex',
+//                     alignItems: 'center',
+//                     gap: '0.75rem',
+//                     border: '1px solid rgba(255,255,255,0.2)'
+//                   }}
+//                 >
+//                   <FileText size={20} /> TeX
+//                 </a>
+//               </div>
+//             </div>
+
+//             {/* ... rest of the slide grid ... */}
+
+//             {/* Slide Grid */}
+//             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '1.75rem', marginBottom: '3rem' }}>
+//               {slides.map((slide, idx) => (
+//                 <div key={idx} style={{
+//                   background: 'rgba(255, 255, 255, 0.08)',
+//                   backdropFilter: 'blur(12px)',
+//                   padding: '2rem',
+//                   borderRadius: '20px',
+//                   borderLeft: '5px solid #3b82f6'
+//                 }}>
+//                   <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.25rem' }}>{slide.title}</h3>
+//                   <ul style={{ paddingLeft: '1.5rem', color: 'rgba(248, 250, 252, 0.9)' }}>
+//                     {slide.key_points?.slice(0, 3).map((kp, i) => (
+//                       <li key={i} style={{ marginBottom: '0.75rem' }}>{kp}</li>
+//                     ))}
+//                   </ul>
+//                 </div>
+//               ))}
+//             </div>
+
+//             {/* Refinement */}
+//             <div style={{
+//               background: 'rgba(15, 23, 42, 0.8)',
+//               padding: '2.5rem',
+//               borderRadius: '20px',
+//               border: '1px solid rgba(139, 92, 246, 0.2)'
+//             }}>
+//               <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.75rem' }}>Not perfect? Refine it.</h3>
+//               <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+//                 <input
+//                   type="text"
+//                   placeholder="e.g., 'Simplify algorithm explanation'..."
+//                   style={{
+//                     flex: 1,
+//                     background: 'rgba(17, 24, 39, 0.8)',
+//                     border: '1px solid rgba(55, 65, 81, 0.5)',
+//                     borderRadius: '12px',
+//                     padding: '1rem 1.5rem',
+//                     color: 'white',
+//                     outline: 'none',
+//                     minWidth: '200px'
+//                   }}
+//                   value={feedback}
+//                   onChange={(e) => setFeedback(e.target.value)}
+//                 />
+//                 <button
+//                   onClick={handleRefine}
+//                   disabled={status === 'processing'}
+//                   style={{
+//                     background: status === 'processing' ? 'rgba(139, 92, 246, 0.4)' : 'linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%)',
+//                     color: 'white',
+//                     padding: '1rem 2rem',
+//                     borderRadius: '12px',
+//                     fontWeight: 600,
+//                     border: 'none',
+//                     cursor: status === 'processing' ? 'not-allowed' : 'pointer',
+//                     display: 'flex',
+//                     alignItems: 'center',
+//                     gap: '0.75rem'
+//                   }}
+//                 >
+//                   {status === 'processing' ? <RefreshCw className="animate-spin" size={20} /> : <Send size={20} />}
+//                   Refine
+//                 </button>
+//               </div>
+//             </div>
+
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, RefreshCw, Download, Send, Zap, Terminal, Clock } from 'lucide-react';
+import { BookOpen, RefreshCw, Download, Send, Zap, Terminal, Clock, FileText } from 'lucide-react';
 
 const API_URL = import.meta.env.PROD ? "" : "http://localhost:8000";
 
-// --- Log Window Component (New) ---
 const LogWindow = ({ logs }) => {
   const scrollRef = useRef(null);
-
-  // Auto-scroll to bottom
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [logs]);
 
   return (
@@ -761,13 +1207,13 @@ const LogWindow = ({ logs }) => {
         flexDirection: 'column',
         gap: '0.5rem'
       }}>
-        {logs.length === 0 && <span style={{ color: '#64748b' }}>Initializing agent sequence...</span>}
+        {logs.length === 0 && <span style={{color: '#64748b'}}>Initializing agent sequence...</span>}
         {logs.map((log, i) => (
           <div key={i} style={{ display: 'flex', gap: '1rem', color: '#e2e8f0' }}>
-            <span style={{ color: '#3b82f6', opacity: 0.8 }}>
-              [{log.split(']')[0].replace('[', '').slice(0, 8)}]
+            <span style={{ color: '#3b82f6', opacity: 0.8, whiteSpace: 'nowrap' }}>
+              [{log.split(']')[0].replace('[','').slice(0,8)}]
             </span>
-            <span>{log.split(']')[1] || log}</span>
+            <span style={{ wordBreak: 'break-word' }}>{log.split(']')[1] || log}</span>
           </div>
         ))}
       </div>
@@ -779,12 +1225,12 @@ export default function App() {
   const [mode, setMode] = useState('arxiv');
   const [inputVal, setInputVal] = useState('');
   const [session, setSession] = useState(null);
-  const [status, setStatus] = useState('idle'); // 'idle' | 'processing' | 'completed'
+  const [status, setStatus] = useState('idle');
   const [logs, setLogs] = useState([]);
   const [slides, setSlides] = useState([]);
   const [feedback, setFeedback] = useState('');
 
-  // --- Polling Logic (The "Brain") ---
+  // Polling Logic
   useEffect(() => {
     let interval;
     if (session && status === 'processing') {
@@ -793,7 +1239,7 @@ export default function App() {
           const res = await fetch(`${API_URL}/api/status/${session}`);
           const data = await res.json();
           setLogs(data.logs || []);
-
+          
           if (data.status === 'completed') {
             setStatus('completed');
             setSlides(data.slides || []);
@@ -806,18 +1252,16 @@ export default function App() {
         } catch (e) {
           console.error("Polling error", e);
         }
-      }, 1000); // Check every 1 second
+      }, 1000);
     }
     return () => clearInterval(interval);
   }, [session, status]);
 
   const handleGenerate = async () => {
     if (!inputVal && mode === 'arxiv') return alert("Please enter a URL");
-
     setStatus('processing');
     setLogs([]);
     setSlides([]);
-
     try {
       const res = await fetch(`${API_URL}/api/generate`, {
         method: 'POST',
@@ -834,16 +1278,14 @@ export default function App() {
 
   const handleRefine = async () => {
     if (!feedback) return;
-    setStatus('processing'); // Restart polling
+    setStatus('processing');
     try {
       await fetch(`${API_URL}/api/refine`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: session, feedback })
       });
-    } catch (e) {
-      alert("Error refining: " + e.message);
-    }
+    } catch (e) { alert(e.message); }
   };
 
   return (
@@ -852,81 +1294,23 @@ export default function App() {
       background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
       color: 'white',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      overflowX: 'hidden',
-      position: 'relative'
+      overflowX: 'hidden'
     }}>
-      {/* Animated Background Particles */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 1
-      }}>
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              width: '4px',
-              height: '4px',
-              background: 'rgba(59, 130, 246, 0.3)',
-              borderRadius: '50%',
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${20 + Math.random() * 10}s infinite linear`,
-              animationDelay: `${Math.random() * 10}s`
-            }}
-          />
-        ))}
-      </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
-          50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-
-      {/* Main Container */}
-      <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
-        padding: '2rem 1.5rem',
-        position: 'relative',
-        zIndex: 10
-      }}>
-
-        {/* Hero Section */}
-        <header style={{
-          textAlign: 'center',
-          marginBottom: '4rem',
-          animation: 'fadeInUp 1s ease-out'
-        }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+        
+        {/* Header */}
+        <header style={{ textAlign: 'center', marginBottom: '4rem', animation: 'fadeInUp 1s ease-out' }}>
           <h1 style={{
             fontSize: 'clamp(2.5rem, 8vw, 5rem)',
             fontWeight: 900,
             background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            marginBottom: '1.5rem',
-            letterSpacing: '-0.02em'
+            marginBottom: '1.5rem'
           }}>
-            Research to Slides <span>AI</span>
+            Research to Slides AI
           </h1>
-          <p style={{
-            fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)',
-            color: 'rgba(156, 163, 175, 0.9)',
-            maxWidth: '600px',
-            margin: '0 auto',
-            lineHeight: 1.6
-          }}>
+          <p style={{ color: '#9ca3af', fontSize: '1.2rem' }}>
             Transform ArXiv papers into stunning presentations.
           </p>
         </header>
@@ -938,46 +1322,26 @@ export default function App() {
           border: '1px solid rgba(59, 130, 246, 0.2)',
           borderRadius: '24px',
           padding: '2.5rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-          marginBottom: '3rem',
-          animation: 'fadeInUp 0.8s ease-out 0.2s both'
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+          marginBottom: '3rem'
         }}>
-
-          {/* Mode Toggle */}
+          {/* Toggles */}
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem' }}>
-            <button
-              onClick={() => setMode('arxiv')}
-              style={{
+            {['arxiv', 'dummy'].map(m => (
+              <button key={m} onClick={() => setMode(m)} style={{
                 padding: '0.75rem 1.75rem',
                 borderRadius: '50px',
                 fontWeight: 600,
                 border: 'none',
-                background: mode === 'arxiv' ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : 'rgba(75, 85, 99, 0.3)',
-                color: mode === 'arxiv' ? 'white' : 'rgba(156, 163, 175, 0.8)',
+                background: mode === m ? '#3b82f6' : 'rgba(75, 85, 99, 0.3)',
+                color: 'white',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              🔗 ArXiv Link
-            </button>
-            <button
-              onClick={() => setMode('dummy')}
-              style={{
-                padding: '0.75rem 1.75rem',
-                borderRadius: '50px',
-                fontWeight: 600,
-                border: 'none',
-                background: mode === 'dummy' ? 'linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%)' : 'rgba(75, 85, 99, 0.3)',
-                color: mode === 'dummy' ? 'white' : 'rgba(156, 163, 175, 0.8)',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              🎲 Try Demo
-            </button>
+                textTransform: 'capitalize'
+              }}>{m === 'arxiv' ? '🔗 ArXiv Link' : '🎲 Try Demo'}</button>
+            ))}
           </div>
 
-          {/* Input & Generate */}
+          {/* Input */}
           <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
             {mode === 'arxiv' && (
               <input
@@ -989,10 +1353,9 @@ export default function App() {
                   background: 'rgba(17, 24, 39, 0.8)',
                   border: '1px solid rgba(55, 65, 81, 0.5)',
                   borderRadius: '16px',
-                  padding: '1.25rem 1.75rem',
+                  padding: '1.25rem',
                   color: 'white',
-                  fontSize: '1.1rem',
-                  outline: 'none'
+                  fontSize: '1.1rem'
                 }}
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
@@ -1002,12 +1365,11 @@ export default function App() {
               onClick={handleGenerate}
               disabled={status === 'processing'}
               style={{
-                background: status === 'processing' ? 'rgba(59, 130, 246, 0.4)' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                background: status === 'processing' ? '#6b7280' : '#3b82f6',
                 color: 'white',
                 padding: '1.25rem 2.5rem',
                 borderRadius: '16px',
                 fontWeight: 700,
-                fontSize: '1.1rem',
                 border: 'none',
                 cursor: status === 'processing' ? 'not-allowed' : 'pointer',
                 display: 'flex',
@@ -1022,132 +1384,67 @@ export default function App() {
             </button>
           </div>
 
-          {/* LOGS WINDOW (Inserted Here) */}
+          {/* LOGS */}
           {(status === 'processing' || logs.length > 0) && <LogWindow logs={logs} />}
-
         </div>
 
-        {/* Results Section */}
-        {/* Results Section */}
-        {status === 'completed' && slides.length > 0 && (
+        {/* Results */}
+        {status === 'completed' && (
           <div style={{ animation: 'fadeInUp 0.8s ease-out 0.4s both' }}>
-
-            {/* Header with Download */}
+            
+            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h2 style={{ fontSize: '1.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <BookOpen style={{ color: '#3b82f6' }} /> Presentation Outline
+                <BookOpen style={{ color: '#3b82f6' }} /> Generated Outline
               </h2>
-
-              {/* UPDATED DOWNLOAD LINKS */}
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <a
-                  href={`${API_URL}/api/download/pptx/${session}`}  // <--- FIXED PATH
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    color: 'white',
-                    padding: '0.875rem 1.75rem',
-                    borderRadius: '12px',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    boxShadow: '0 8px 25px rgba(16, 185, 129, 0.4)'
-                  }}
-                >
-                  <Download size={20} /> PPTX
-                </a>
-
-                {/* Optional: Add TeX Download since your backend supports it */}
-                <a
-                  href={`${API_URL}/api/download/tex/${session}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    color: 'white',
-                    padding: '0.875rem 1.75rem',
-                    borderRadius: '12px',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    border: '1px solid rgba(255,255,255,0.2)'
-                  }}
-                >
-                  <FileText size={20} /> TeX
-                </a>
+                <a href={`${API_URL}/api/download/pptx/${session}`} target="_blank" style={{
+                  background: '#10b981', color: 'white', padding: '0.8rem 1.5rem', borderRadius: '12px', textDecoration: 'none', display: 'flex', gap: '0.5rem', alignItems: 'center', fontWeight: 'bold'
+                }}><Download size={18} /> Download PPTX</a>
               </div>
             </div>
 
-            {/* ... rest of the slide grid ... */}
-
-            {/* Slide Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '1.75rem', marginBottom: '3rem' }}>
-              {slides.map((slide, idx) => (
-                <div key={idx} style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  backdropFilter: 'blur(12px)',
-                  padding: '2rem',
-                  borderRadius: '20px',
-                  borderLeft: '5px solid #3b82f6'
-                }}>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.25rem' }}>{slide.title}</h3>
-                  <ul style={{ paddingLeft: '1.5rem', color: 'rgba(248, 250, 252, 0.9)' }}>
-                    {slide.key_points?.slice(0, 3).map((kp, i) => (
-                      <li key={i} style={{ marginBottom: '0.75rem' }}>{kp}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            {/* ERROR BOUNDARY FOR SLIDES */}
+            {slides && slides.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '1.75rem', marginBottom: '3rem' }}>
+                {slides.map((slide, idx) => (
+                  <div key={idx} style={{
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    padding: '2rem',
+                    borderRadius: '20px',
+                    borderLeft: '5px solid #3b82f6'
+                  }}>
+                    {/* Safe Access to Title */}
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.25rem' }}>
+                      {slide?.title || "Untitled Slide"}
+                    </h3>
+                    
+                    {/* Safe Access to Key Points */}
+                    <ul style={{ paddingLeft: '1.5rem', color: '#cbd5e1' }}>
+                      {slide?.key_points && Array.isArray(slide.key_points) ? (
+                        slide.key_points.slice(0, 3).map((kp, i) => (
+                          <li key={i} style={{ marginBottom: '0.75rem' }}>{kp}</li>
+                        ))
+                      ) : (
+                         <li>No key points generated.</li>
+                      )}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171', border: '1px solid #f87171', borderRadius: '12px' }}>
+                 ⚠️ No slides were generated. The content might have been filtered or failed to parse. Check logs above.
+              </div>
+            )}
 
             {/* Refinement */}
-            <div style={{
-              background: 'rgba(15, 23, 42, 0.8)',
-              padding: '2.5rem',
-              borderRadius: '20px',
-              border: '1px solid rgba(139, 92, 246, 0.2)'
-            }}>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.75rem' }}>Not perfect? Refine it.</h3>
-              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                <input
-                  type="text"
-                  placeholder="e.g., 'Simplify algorithm explanation'..."
-                  style={{
-                    flex: 1,
-                    background: 'rgba(17, 24, 39, 0.8)',
-                    border: '1px solid rgba(55, 65, 81, 0.5)',
-                    borderRadius: '12px',
-                    padding: '1rem 1.5rem',
-                    color: 'white',
-                    outline: 'none',
-                    minWidth: '200px'
-                  }}
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                />
-                <button
-                  onClick={handleRefine}
-                  disabled={status === 'processing'}
-                  style={{
-                    background: status === 'processing' ? 'rgba(139, 92, 246, 0.4)' : 'linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%)',
-                    color: 'white',
-                    padding: '1rem 2rem',
-                    borderRadius: '12px',
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: status === 'processing' ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem'
-                  }}
-                >
-                  {status === 'processing' ? <RefreshCw className="animate-spin" size={20} /> : <Send size={20} />}
-                  Refine
+            <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '2.5rem', borderRadius: '20px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.75rem' }}>Not satisfied? Refine it.</h3>
+              <div style={{ display: 'flex', gap: '1.5rem' }}>
+                <input type="text" placeholder="e.g., 'Make the explanation simpler'" style={{ flex: 1, background: '#111827', border: '1px solid #374151', padding: '1rem', borderRadius: '12px', color: 'white' }} value={feedback} onChange={(e) => setFeedback(e.target.value)} />
+                <button onClick={handleRefine} style={{ background: '#8b5cf6', color: 'white', padding: '1rem 2rem', borderRadius: '12px', border: 'none', cursor: 'pointer', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <Send size={18} /> Refine
                 </button>
               </div>
             </div>
@@ -1155,6 +1452,11 @@ export default function App() {
           </div>
         )}
       </div>
+      <style>{`
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
