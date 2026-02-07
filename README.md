@@ -39,11 +39,6 @@ The **Beamer Agent** generates academic-ready LaTeX Beamer code.
 * **Theming:** Utilizes the `Madrid` theme with the `dolphin` color theme for a classic research presentation look.
 * **Optimization:** Features an "auto-shrink" capability to ensure text-heavy content fits within the frame boundaries.
 
-### 6. 🚀 Google Slides Agent
-A specialized agent that interacts directly with the **Google Slides and Drive APIs**.
-* **Asset Mapping:** Uses an internal **Asset Library** to map keywords like "robot," "brain," or "network" to high-quality Wikipedia imagery.
-* **Custom Shapes:** Programmatically draws sidebar accents and text boxes using precise EMU (English Metric Unit) conversions for a "Canva-style" design.
-
 ---
 
 ## 🛠️ Technical Stack
@@ -58,12 +53,11 @@ A specialized agent that interacts directly with the **Google Slides and Drive A
 ## 🚀 Getting Started
 
 1.  **Environment Setup:** Create a `.env` file in the root directory with your API keys.
-2.  **Service Account:** Place your `credentials.json` in the `backend/` folder for Google Slides integration.
-3.  **Install Dependencies:**
+2.  **Install Dependencies:**
     ```bash
     pip install -r backend/requirements.txt
     cd frontend && npm install
     ```
-4.  **Run Application:**
+3.  **Run Application:**
     * Backend: `python backend/app.py`
     * Frontend: `npm run dev`
