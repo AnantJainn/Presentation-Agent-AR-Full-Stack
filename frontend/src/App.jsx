@@ -270,7 +270,7 @@
 //         position: 'relative',
 //         zIndex: 10
 //       }}>
-        
+
 //         {/* Hero Section */}
 //         <header style={{
 //           textAlign: 'center',
@@ -316,7 +316,7 @@
 //           marginBottom: '3rem',
 //           animation: 'fadeInUp 0.8s ease-out 0.2s both'
 //         }}>
-          
+
 //           {/* Mode Toggle */}
 //           <div style={{
 //             display: 'flex',
@@ -480,7 +480,7 @@
 //         {/* Results Section */}
 //         {slides.length > 0 && (
 //           <div style={{ animation: 'fadeInUp 0.8s ease-out 0.4s both' }}>
-            
+
 //             {/* Header with Download */}
 //             <div style={{
 //               display: 'flex',
@@ -720,7 +720,7 @@ const API_URL = import.meta.env.PROD ? "" : "http://localhost:8000";
 // --- Log Window Component (New) ---
 const LogWindow = ({ logs }) => {
   const scrollRef = useRef(null);
-  
+
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
@@ -761,11 +761,11 @@ const LogWindow = ({ logs }) => {
         flexDirection: 'column',
         gap: '0.5rem'
       }}>
-        {logs.length === 0 && <span style={{color: '#64748b'}}>Initializing agent sequence...</span>}
+        {logs.length === 0 && <span style={{ color: '#64748b' }}>Initializing agent sequence...</span>}
         {logs.map((log, i) => (
           <div key={i} style={{ display: 'flex', gap: '1rem', color: '#e2e8f0' }}>
             <span style={{ color: '#3b82f6', opacity: 0.8 }}>
-              [{log.split(']')[0].replace('[','').slice(0,8)}]
+              [{log.split(']')[0].replace('[', '').slice(0, 8)}]
             </span>
             <span>{log.split(']')[1] || log}</span>
           </div>
@@ -793,7 +793,7 @@ export default function App() {
           const res = await fetch(`${API_URL}/api/status/${session}`);
           const data = await res.json();
           setLogs(data.logs || []);
-          
+
           if (data.status === 'completed') {
             setStatus('completed');
             setSlides(data.slides || []);
@@ -813,11 +813,11 @@ export default function App() {
 
   const handleGenerate = async () => {
     if (!inputVal && mode === 'arxiv') return alert("Please enter a URL");
-    
+
     setStatus('processing');
     setLogs([]);
     setSlides([]);
-    
+
     try {
       const res = await fetch(`${API_URL}/api/generate`, {
         method: 'POST',
@@ -902,7 +902,7 @@ export default function App() {
         position: 'relative',
         zIndex: 10
       }}>
-        
+
         {/* Hero Section */}
         <header style={{
           textAlign: 'center',
@@ -942,10 +942,10 @@ export default function App() {
           marginBottom: '3rem',
           animation: 'fadeInUp 0.8s ease-out 0.2s both'
         }}>
-          
+
           {/* Mode Toggle */}
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem' }}>
-            <button 
+            <button
               onClick={() => setMode('arxiv')}
               style={{
                 padding: '0.75rem 1.75rem',
@@ -960,7 +960,7 @@ export default function App() {
             >
               🔗 ArXiv Link
             </button>
-            <button 
+            <button
               onClick={() => setMode('dummy')}
               style={{
                 padding: '0.75rem 1.75rem',
@@ -1028,33 +1028,62 @@ export default function App() {
         </div>
 
         {/* Results Section */}
+        {/* Results Section */}
         {status === 'completed' && slides.length > 0 && (
           <div style={{ animation: 'fadeInUp 0.8s ease-out 0.4s both' }}>
-            
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+
+            {/* Header with Download */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h2 style={{ fontSize: '1.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <BookOpen style={{ color: '#3b82f6' }} /> Presentation Outline
               </h2>
-              <a 
-                href={`${API_URL}/api/download/${session}`} 
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  color: 'white',
-                  padding: '0.875rem 1.75rem',
-                  borderRadius: '12px',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem'
-                }}
-              >
-                <Download size={20} /> Download PPTX
-              </a>
+
+              {/* UPDATED DOWNLOAD LINKS */}
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <a
+                  href={`${API_URL}/api/download/pptx/${session}`}  // <--- FIXED PATH
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: 'white',
+                    padding: '0.875rem 1.75rem',
+                    borderRadius: '12px',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    boxShadow: '0 8px 25px rgba(16, 185, 129, 0.4)'
+                  }}
+                >
+                  <Download size={20} /> PPTX
+                </a>
+
+                {/* Optional: Add TeX Download since your backend supports it */}
+                <a
+                  href={`${API_URL}/api/download/tex/${session}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: 'white',
+                    padding: '0.875rem 1.75rem',
+                    borderRadius: '12px',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}
+                >
+                  <FileText size={20} /> TeX
+                </a>
+              </div>
             </div>
+
+            {/* ... rest of the slide grid ... */}
 
             {/* Slide Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '1.75rem', marginBottom: '3rem' }}>
